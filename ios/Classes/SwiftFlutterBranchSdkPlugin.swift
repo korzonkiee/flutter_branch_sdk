@@ -47,10 +47,19 @@ public class SwiftFlutterBranchSdkPlugin: NSObject, FlutterPlugin, FlutterStream
     }
     
     public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [AnyHashable : Any] = [:]) -> Bool {
+        let defaults = UserDefaults.standard
+      
         Branch.getInstance().registerPluginName(PLUGIN_NAME, version:  getPluginVersion())
 
         if #available(iOS 15.0, *) {
+          // This is a fix to solve the following issue:
+          // - https://github.com/RodrigoSMarques/flutter_branch_sdk/issues/345
+          // - https://github.com/BranchMetrics/ios-branch-deep-linking-attribution/issues/1412
+          if (defaults.string(forKey: "flutter_branch_sdk_first_open_key") == nil) {
             Branch.getInstance().checkPasteboardOnInstall()
+          }
+          
+          defaults.setValue("", forKey: "flutter_branch_sdk_first_open_key")
         }
 
         Branch.getInstance().initSession(launchOptions: launchOptions) { (params, error) in
